@@ -1,0 +1,20 @@
+systemd:
+    - name: etcd-member.service
+      enable: false
+      dropins:
+        - name: 40-etcd-cluster.conf
+          contents: |
+            [Service]
+            Environment="ETCD_IMAGE_TAG=v3.2.0"
+            Environment="ETCD_NAME=node{{.node_number}}{{.request.query.suffix}}.zbrbdl"
+            Environment="ETCD_ADVERTISE_CLIENT_URLS=http://node{{.node_number}}{{.request.query.suffix}}.zbrbdl:2379"
+            Environment="ETCD_INITIAL_ADVERTISE_PEER_URLS=http://node{{.node_number}}{{.request.query.suffix}}.zbrbdl:2380"
+            Environment="ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379"
+            Environment="ETCD_LISTEN_PEER_URLS=http://0.0.0.0:2380"
+            Environment="ETCD_INITIAL_CLUSTER=node1=http://node1{{.request.query.suffix}}.zbrbdl:2380,node2=http://node2{{.request.query.suffix}}.zbrbdl:2380,node3=http://node3{{.request.query.suffix}}.zbrbdl:2380"
+            Environment="ETCD_STRICT_RECONFIG_CHECK=true"
+            {{ if .kube_master -}}
+            ExecStart=
+            ExecStart=/usr/lib/coreos/etcd-wrapper gateway start \
+              --listen-addr=127.0.0.1:2379 \
+              --endpoints=https://etcd.k8s.zbrbdl:2379

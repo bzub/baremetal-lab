@@ -1,0 +1,13 @@
+{
+  "id": "nfs",
+  "name": "NFS Server",
+  "profile": "nfs",
+  "selector": {
+    "mac": "00:23:32:d6:1a:a8"
+  },
+  "metadata": {
+    "subnet": 5,
+    "node_number": 1,
+    "node_suffix": ""
+  }
+}

@@ -1,0 +1,120 @@
+---
+networkd:
+  units:
+    - name: 00-lo.network
+      contents: |
+    - name: 00-srv-static.network
+      contents: |
+        [Match]
+        Name=eno1 ens4 enp0s10 enp0s25
+        Host=srv{{.node_number}}.zbrbdl
+
+        [Network]
+        Address=10.10.{{.subnet}}.{{.node_number}}/16
+        Gateway=10.10.10.1
+        DNS=10.10.100.1
+        Domains=zbrbdl zbrbdl.com
+        DHCP=no
+    - name: 00-unmanaged.network
+      contents: |
+        [Match]
+        Name=dummy0 kube-dummy-if kube-bridge cni*
+
+        [Link]
+        Unmanaged=true
+systemd:
+  units:
+    - name: locksmithd.service
+      dropins:
+        - name: 40-disable.conf
+          contents: |
+            [Service]
+            Environment=REBOOT_STRATEGY=off
+    - name: rpcbind.service
+      enabe: true
+    - name: nfs-server.service
+      enable: true
+    - name: nfs.mount
+      enable: true
+      contents: |
+        [Mount]
+        What=/dev/disk/by-label/SRV
+        Where=/nfs
+        Type=btrfs
+        Options=compress=lzo,subvol=/nfs
+
+        [Install]
+        WantedBy=local-fs.target
+storage:
+  files:
+    - path: /etc/hostname
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          srv{{.node_number}}.zbrbdl
+    - path: /etc/hosts
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          # IPv4 and IPv6 localhost aliases
+          127.0.0.1       localhost
+          ::1             localhost
+
+          # Prod Servers
+          10.10.2.1       node1 node1.zbrbdl
+          10.10.2.2       node2 node2.zbrbdl
+          10.10.2.3       node3 node3.zbrbdl
+          10.10.2.4       node4 node4.zbrbdl
+          10.10.2.5       node5 node5.zbrbdl
+
+          # Test Servers
+          10.10.3.1       node1-test node1-test.zbrbdl
+          10.10.3.2       node2-test node2-test.zbrbdl
+          10.10.3.3       node3-test node3-test.zbrbdl
+          10.10.3.4       node4-test node4-test.zbrbdl
+          10.10.3.5       node5-test node5-test.zbrbdl
+    - path: /etc/systemd/timesyncd.conf
+      filesystem: root
+      mode: 420
+      contents:
+        inline: |
+          [Time]
+          NTP=0.coreos.pool.ntp.org 1.coreos.pool.ntp.org 2.coreos.pool.ntp.org 3.coreos.pool.ntp.org
+    - path: /etc/systemd/logind.conf
+      filesystem: root
+      mode: 0600
+      contents:
+        inline: |
+          HandleLidSwitch=ignore
+    - path: /etc/conf.d/nfs
+      filesystem: root
+      mode: 0644
+      contents:
+        inline: |
+          RPCNFSDARGS="2 -N 2 -N 3 -V 4 -V 4.1"
+    - path: /etc/exports
+      filesystem: root
+      mode: 0600
+      contents:
+        inline: |
+          /nfs                  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=root)
+          /nfs/images           10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=1)
+          /nfs/rook/rook-node1  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=2)
+          /nfs/rook/rook-node2  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=3)
+          /nfs/rook/rook-node3  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=4)
+          /nfs/etcd/etcd-node1  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=5)
+          /nfs/etcd/etcd-node2  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=6)
+          /nfs/etcd/etcd-node3  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=7)
+          /nfs/etcd/shared      10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=8)
+          /nfs/kubernetes/kubernetes-node1  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=9)
+          /nfs/kubernetes/kubernetes-node2  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=10)
+          /nfs/kubernetes/kubernetes-node3  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=11)
+          /nfs/rook/rook-node1-test  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=12)
+          /nfs/rook/rook-node2-test  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=13)
+          /nfs/rook/rook-node3-test  10.10.0.0/16(rw,sync,no_subtree_check,insecure,crossmnt,no_root_squash,fsid=14)
+ignition:
+  config:
+    append:
+      - source: http://matchbox.zbrbdl:9090/ignition?profile=authkeys

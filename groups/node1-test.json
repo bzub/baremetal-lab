@@ -1,0 +1,13 @@
+{
+  "id": "node1-test",
+  "name": "Kubernetes Test Node",
+  "profile": "bootkube-test",
+  "selector": {
+    "mac": "00:1e:4f:92:b2:38"
+  },
+  "metadata": {
+    "node_number": 1,
+    "low_mem": true,
+    "kube_master": true
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "bigmac",
+  "name": "Kubernetes Production Node",
+  "profile": "bootkube-prod",
+  "selector": {
+    "mac": "98:de:d0:00:21:39"
+  },
+  "metadata": {
+    "node_number": 4,
+    "low_mem": false,
+    "kube_master": false
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "node2",
+  "name": "Kubernetes Production Node",
+  "profile": "bootkube-prod",
+  "selector": {
+    "mac": "00:26:b9:5b:9a:2a"
+  },
+  "metadata": {
+    "node_number": 2,
+    "low_mem": false,
+    "kube_master": true
+  }
+}

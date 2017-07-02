@@ -1,0 +1,13 @@
+{
+  "id": "authkeys-example",
+  "name": "Authorization Keys",
+  "profile": "ssh",
+  "selector": {
+    "profile": "authkeys-example"
+  },
+  "metadata": {
+    "ssh_authorized_keys": [
+      "SSH PUBLIC",
+      "KEYS HERE"]
+  }
+}
